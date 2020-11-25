@@ -55,13 +55,13 @@ macro simplify(qt)
             @assert length(qt.args[1].args) == 4
             Cname,Ctyp = qt.args[1].args[4].args
             esc(quote
-            LazyArrays.ApplyStyle(::typeof(*), ::Type{<:$Atyp}, ::Type{<:$Btyp}, ::Type{<:$Ctyp}) = ContinuumArrays.SimplifyStyle()
-            function Base.copy(M::ContinuumArrays.QMul3{<:$Atyp,<:$Btyp,<:$Ctyp})
-                $Aname,$Bname,$Cname = M.args
-                $mat
-            end
-         end)
-    end
+                LazyArrays.ApplyStyle(::typeof(*), ::Type{<:$Atyp}, ::Type{<:$Btyp}, ::Type{<:$Ctyp}) = ContinuumArrays.SimplifyStyle()
+                function Base.copy(M::ContinuumArrays.QMul3{<:$Atyp,<:$Btyp,<:$Ctyp})
+                    $Aname,$Bname,$Cname = M.args
+                    $mat
+                end
+            end)
+        end
     else # A\
         mat = qt.args[2]
         @assert qt.args[1].args[1] == :(\)
