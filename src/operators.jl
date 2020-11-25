@@ -4,19 +4,19 @@ struct SimplifyStyle <: AbstractQuasiArrayApplyStyle end
 
 copy(A::Applied{SimplifyStyle}) = error("Override copy(::$(typeof(A)))")
 
-function removesubtype(typ) 
-    if typ isa Expr && typ.head == :(<:) 
+function removesubtype(typ)
+    if typ isa Expr && typ.head == :(<:)
         typ.args[1]
     else
         typ
     end
 end
 
-function adjtype(Atyp) 
-    if Atyp isa Expr && Atyp.args[1] == :QuasiAdjoint 
+function adjtype(Atyp)
+    if Atyp isa Expr && Atyp.args[1] == :QuasiAdjoint
         removesubtype(Atyp.args[3])
     else
-        :(QuasiAdjoint{<:Any,<:$Atyp}) 
+        :(QuasiAdjoint{<:Any,<:$Atyp})
     end
 end
 
@@ -38,7 +38,7 @@ macro simplify(qt)
                     $mat
                 end
             end
-            if Aadj ≠ Btyp 
+            if Aadj ≠ Btyp
                 @assert Atyp ≠ Badj
                 ret = quote
                     $ret
@@ -49,7 +49,7 @@ macro simplify(qt)
                     end
                 end
             end
-            
+
             esc(ret)
         else
             @assert length(qt.args[1].args) == 4
@@ -63,7 +63,7 @@ macro simplify(qt)
          end)
     end
     else # A\
-        mat = qt.args[2]  
+        mat = qt.args[2]
         @assert qt.args[1].args[1] == :(\)
         @assert qt.args[1].args[2].head == :(::)
         Aname,Atyp = qt.args[1].args[2].args
@@ -82,7 +82,7 @@ macro simplify(qt)
             @assert qt.args[1].args[3].args[2].head == :(::)
             Bname,Btyp = qt.args[1].args[3].args[2].args
             @assert qt.args[1].args[3].args[3].head == :(::)
-            Cname,Ctyp = qt.args[1].args[3].args[3].args   
+            Cname,Ctyp = qt.args[1].args[3].args[3].args
             if length(qt.args[1].args[3].args) == 3
                 esc(quote
                     LazyArrays.ApplyStyle(::typeof(\), ::Type{<:$Atyp}, ::Type{<:ContinuumArrays.QMul2{<:$Btyp,<:$Ctyp}}) = ContinuumArrays.SimplifyStyle()
@@ -94,7 +94,7 @@ macro simplify(qt)
                 end)
             else
                 @assert length(qt.args[1].args[3].args) == 4
-                Dname,Dtyp = qt.args[1].args[3].args[4].args   
+                Dname,Dtyp = qt.args[1].args[3].args[4].args
                 esc(quote
                     ApplyStyle(::typeof(\),::Type{<:$Atyp}, ::Type{<:ContinuumArrays.QMul3{<:$Btyp,<:$Ctyp,<:$Dtyp}}) = ContinuumArrays.SimplifyStyle()
                     function Base.copy(M::Applied{ContinuumArrays.SimplifyStyle,typeof(\),<:Tuple{<:$Atyp,<:ContinuumArrays.QMul3{<:$Btyp,<:$Ctyp,<:$Dtyp}}})
