@@ -21,8 +21,7 @@ function adjtype(Atyp)
 end
 
 macro simplify(qt)
-    qt.head == :function || qt.head == :(=) || error("Must start with a function")
-    @assert qt.args[1].head == :call
+    _assert_multiplication_definition(qt)
     if qt.args[1].args[1] == :(*)
         mat = qt.args[2]
         @assert qt.args[1].args[2].head == :(::)
@@ -106,6 +105,18 @@ macro simplify(qt)
             end
         end
     end
+end
+
+function _assert_multiplication_definition(ex)
+    ex.head == :function || ex.head == :(=) || throw(AssertionError("Expression must be a function definition, got ex.head=$(ex.head)"))
+    @assert length(ex.args) >= 1
+    @assert ex.args[1] isa Expr
+    @assert ex.args[1].head == :call
+    fname = first(ex.args[1].args)
+    (isa(fname, Symbol) && fname == :(*)) ||
+        (isa(fname, Expr) && fname.head == :(.) && fname.args[1] == :Base && fname.args[2] == :(:(*))) ||
+        throw(AssertionError("Expression not defining method for * operator (function name $fname)"))
+    return nothing
 end
 
 
